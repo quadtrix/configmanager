@@ -14,10 +14,10 @@ import (
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/google/uuid"
-	"quadtrix.nl/aesengine"
-	"quadtrix.nl/audit"
-	"quadtrix.nl/basicqueue"
-	"quadtrix.nl/servicelogger"
+	"github.com/quadtrix/aesengine"
+	"github.com/quadtrix/audit"
+	"github.com/quadtrix/basicqueue"
+	"github.com/quadtrix/servicelogger"
 )
 
 type ConfigFileType int
