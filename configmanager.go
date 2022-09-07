@@ -364,6 +364,7 @@ func (cfg Configuration) getJson(key string) interface{} {
 				fmt.Println(fmt.Sprintf("Key: %s", keyparts[i]))
 				foundvalue = cfg.findStringKey(keyparts[i], stringMap)
 				if foundvalue != nil {
+					fmt.Println("Found: ", foundvalue)
 					if i < numkeys-1 {
 						stringMap = foundvalue.(map[string]interface{})
 					} else {
