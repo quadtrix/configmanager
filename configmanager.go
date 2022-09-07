@@ -2,12 +2,14 @@
 package configmanager
 
 import (
+	"bytes"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
+	"reflect"
 	"strconv"
 	"strings"
 	"time"
@@ -364,7 +366,14 @@ func (cfg Configuration) getJson(key string) interface{} {
 				foundvalue = cfg.findStringKey(keyparts[i], stringMap)
 				if foundvalue != nil {
 					if i < numkeys-1 {
-						stringMap = foundvalue.(map[string]interface{})
+						typeOfMap := reflect.TypeOf(stringMap)
+						if typeOfMap.Name() == "map[string]string" {
+							tmpStringMap := foundvalue.(map[string]string)
+							stringMap = transcode(tmpStringMap)
+
+						} else {
+							stringMap = foundvalue.(map[string]interface{})
+						}
 					} else {
 						return foundvalue
 					}
@@ -374,6 +383,13 @@ func (cfg Configuration) getJson(key string) interface{} {
 		}
 	}
 	return nil
+}
+
+func transcode(in map[string]string) (out map[string]interface{}) {
+	buf := new(bytes.Buffer)
+	json.NewEncoder(buf).Encode(in)
+	json.NewDecoder(buf).Decode(&out)
+	return out
 }
 
 // Get returns the value of "key" as an interface{}
