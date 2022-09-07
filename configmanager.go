@@ -366,9 +366,8 @@ func (cfg Configuration) getJson(key string) interface{} {
 				foundvalue = cfg.findStringKey(keyparts[i], stringMap)
 				if foundvalue != nil {
 					if i < numkeys-1 {
-						typeOfMap := reflect.TypeOf(stringMap)
-						fmt.Println("Type of map: ", typeOfMap.Name())
-						if typeOfMap.Name() == "map[string]string" {
+						var stringMapType = reflect.TypeOf(map[string]string{}).Elem()
+						if reflect.TypeOf(stringMap) == stringMapType {
 							tmpStringMap := foundvalue.(map[string]string)
 							stringMap = transcode(tmpStringMap)
 
