@@ -221,7 +221,14 @@ func (cfg *Configuration) SaveEncryptionKey(key string, encryptionKey []byte, en
 		if err != nil {
 			return err
 		}
-		err = cfg.setJson(fmt.Sprintf("%s.%s", key, "checksum"), fmt.Sprintf("%X", cfg.calcChecksum(b64EncodedKey, b64EncodedNonce)))
+		err = cfg.setJson(fmt.Sprintf("%s.%s", key, "checksum"), cfg.calcChecksum(b64EncodedKey, b64EncodedNonce))
+		if err != nil {
+			return err
+		}
+		err = cfg.setJson(fmt.Sprintf("%s.%s", key, "checksum"), cfg.calcChecksum(b64EncodedKey, b64EncodedNonce))
+		if err != nil {
+			return err
+		}
 		return nil
 	}
 	newMapItems := map[string]string{keyKey: string(b64EncodedKey), nonceKey: string(b64EncodedNonce)}
@@ -496,13 +503,13 @@ func (cfg Configuration) keyExists(key string) bool {
 	return true
 }
 
-func (cfg *Configuration) setStringKey(key string, value string, stringmap map[string]interface{}) (newmap map[string]interface{}, err error) {
+func (cfg *Configuration) setKey(key string, value any, stringmap map[string]interface{}) (newmap map[string]interface{}, err error) {
 	newmap = stringmap
 	newmap[key] = value
 	return newmap, nil
 }
 
-func (cfg *Configuration) setJson(key string, value string) (err error) {
+func (cfg *Configuration) setJson(key string, value any) (err error) {
 	keytype := "simple"
 	if strings.Contains(key, ".") {
 		if key[0] == '@' {
@@ -515,7 +522,7 @@ func (cfg *Configuration) setJson(key string, value string) (err error) {
 	switch keytype {
 	case "simple":
 		cfg.slog.LogTrace("setJson", "configmanager", fmt.Sprintf("Directly setting simple key %s to value %s", key, value))
-		newmap, err := cfg.setStringKey(key, value, cfg.jsonConfigMap)
+		newmap, err := cfg.setKey(key, value, cfg.jsonConfigMap)
 		if err != nil {
 			return errors.New(fmt.Sprintf("saving failed: %s", err.Error()))
 		}
@@ -542,7 +549,7 @@ func (cfg *Configuration) setJson(key string, value string) (err error) {
 				if !ok {
 					// This is a value, not a map
 					cfg.slog.LogTrace("setJson", "configmanager", fmt.Sprintf("Value found for partial key %s, replacing value with %s", keyparts[i], value))
-					returnedMap, err = cfg.setStringKey(keyparts[i], value, stringMap)
+					returnedMap, err = cfg.setKey(keyparts[i], value, stringMap)
 					if err != nil {
 						return errors.New(fmt.Sprintf("saving failed: %s", err.Error()))
 					} else {
@@ -572,7 +579,7 @@ func (cfg *Configuration) setJson(key string, value string) (err error) {
 				}
 			}
 		}
-		newmap, err := cfg.setStringKey(key, value, cfg.jsonConfigMap)
+		newmap, err := cfg.setKey(key, value, cfg.jsonConfigMap)
 		if err != nil {
 			return errors.New(fmt.Sprintf("saving failed: %s", err.Error()))
 		}
