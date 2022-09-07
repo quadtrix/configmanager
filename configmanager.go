@@ -203,6 +203,10 @@ func appendMaps(orgMap map[string]interface{}, subMap map[string]interface{}) (n
 	return orgMap, nil
 }
 
+func (cfg *Configuration) calcChecksum(key string, nonce string) int {
+	return 2*(len(key)+len(nonce)) + 43
+}
+
 func (cfg *Configuration) SaveEncryptionKey(key string, encryptionKey []byte, encryptionNonce []byte) (err error) {
 	keyKey := "key"
 	nonceKey := "nonce"
@@ -217,6 +221,7 @@ func (cfg *Configuration) SaveEncryptionKey(key string, encryptionKey []byte, en
 		if err != nil {
 			return err
 		}
+		err = cfg.setJson(fmt.Sprintf("%s.%s", key, "checksum"), fmt.Sprintf("%X", cfg.calcChecksum(b64EncodedKey, b64EncodedNonce)))
 		return nil
 	}
 	newMapItems := map[string]string{keyKey: string(b64EncodedKey), nonceKey: string(b64EncodedNonce)}
