@@ -364,10 +364,7 @@ func (cfg Configuration) getJson(key string) interface{} {
 				foundvalue = cfg.findStringKey(keyparts[i], stringMap)
 				if foundvalue != nil {
 					if i < numkeys-1 {
-						stringMap, ok := foundvalue.(map[string]interface{})
-						if !ok {
-							fmt.Println(fmt.Sprintf("ERROR: Failed to convert value of key %s (%v) to map[string]interface{}", keyparts[i], stringMap))
-						}
+						stringMap = foundvalue.(map[string]interface{})
 					} else {
 						return foundvalue
 					}
