@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"reflect"
 	"strconv"
 	"strings"
 	"time"
@@ -366,16 +365,7 @@ func (cfg Configuration) getJson(key string) interface{} {
 				foundvalue = cfg.findStringKey(keyparts[i], stringMap)
 				if foundvalue != nil {
 					if i < numkeys-1 {
-						var stringMapType = reflect.TypeOf(map[string]string{}).Elem()
-						if reflect.TypeOf(stringMap) == stringMapType {
-							fmt.Println(fmt.Sprintf("%s is of type map[string]string", keyparts[i]))
-							tmpStringMap := foundvalue.(map[string]string)
-							stringMap = transcode(tmpStringMap)
-
-						} else {
-							fmt.Println(fmt.Sprintf("%s is of type map[string]interface{}", keyparts[i]))
-							stringMap = foundvalue.(map[string]interface{})
-						}
+						stringMap = foundvalue.(map[string]interface{})
 					} else {
 						return foundvalue
 					}
