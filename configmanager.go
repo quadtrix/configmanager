@@ -228,13 +228,13 @@ func (cfg *Configuration) SaveEncryptionKey(key string, encryptionKey []byte, en
 		return nil
 	}
 	var newMapItems struct {
-		key      string
-		nonce    string
-		checksum int
+		key      map[string]string
+		nonce    map[string]string
+		checksum map[string]int
 	}
-	newMapItems.key = string(b64EncodedKey)
-	newMapItems.nonce = string(b64EncodedNonce)
-	newMapItems.checksum = cfg.calcChecksum(b64EncodedKey, b64EncodedNonce)
+	newMapItems.key = map[string]string{"key": string(b64EncodedKey)}
+	newMapItems.nonce = map[string]string{"nonce": string(b64EncodedNonce)}
+	newMapItems.checksum = map[string]int{"checksum": cfg.calcChecksum(b64EncodedKey, b64EncodedNonce)}
 	//newMapItems := map[string]string{keyKey: string(b64EncodedKey), nonceKey: string(b64EncodedNonce), "checksum": cfg.calcChecksum(b64EncodedKey, b64EncodedNonceb64EncodedNonce)}
 	newMap := map[string]interface{}{key: newMapItems}
 	cfg.jsonConfigMap, err = appendMaps(cfg.jsonConfigMap, newMap)
