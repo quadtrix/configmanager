@@ -359,6 +359,8 @@ func (cfg Configuration) getJson(key string) interface{} {
 			stringMap := cfg.jsonConfigMap
 			var foundvalue interface{}
 			for i := 0; i < numkeys; i++ {
+				// Debugging
+				fmt.Println(fmt.Sprintf("Key: %s", keyparts[i]))
 				foundvalue = cfg.findStringKey(keyparts[i], stringMap)
 				if foundvalue != nil {
 					if i < numkeys-1 {
