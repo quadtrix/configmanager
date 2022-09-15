@@ -130,7 +130,7 @@ func (cfg *Configuration) startMonitoring() {
 				}
 				if time.Now().Sub(cfg.lastMonitorEvent) > time.Second {
 					cfg.slog.LogTrace("startMonitoring", "configmanager", fmt.Sprintf("Received fsnotify event: %v", event))
-					cfg.queue.AddMessage(cfg.queue_identifier, fmt.Sprintf("EVENT: %s;%s", event.Name, event.Op))
+					cfg.queue.AddJsonMessage(cfg.queue_identifier, "configmanager", "main", "EVENT", fmt.Sprintf("%s/%s", event.Name, event.Op))
 					cfg.lastMonitorEvent = time.Now()
 					time.Sleep(time.Second) // This sleep is necessary to make sure the file is fully readable
 					err := cfg.reReadConfiguration()
@@ -142,7 +142,7 @@ func (cfg *Configuration) startMonitoring() {
 				if !ok {
 					return
 				}
-				cfg.queue.AddMessage(cfg.queue_identifier, fmt.Sprintf("ERROR: %s", err))
+				cfg.queue.AddJsonMessage(cfg.queue_identifier, "configmanager", "main", "ERROR", err.Error())
 			}
 		}
 	}()
