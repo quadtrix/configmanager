@@ -587,6 +587,11 @@ func (cfg *Configuration) SetString(key string, value string) (err error) {
 	return cfg.setJson(key, value)
 }
 
+// SetBool sets an exisition configuration key to a new boolean value
+func (cfg *Configuration) SetBool(key string, value bool) (err error) {
+	return cfg.setJson(key, value)
+}
+
 // Encrypt encrypts a key's string value (doesn't make sense for any other type) and replaces its unencrypted value
 // in the configuration map by its encrypted value
 func (cfg *Configuration) Encrypt(key string) (err error) {
