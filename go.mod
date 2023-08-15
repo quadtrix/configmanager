@@ -5,10 +5,13 @@ go 1.20
 require (
 	github.com/fsnotify/fsnotify v1.6.0
 	github.com/google/uuid v1.3.0
-	github.com/quadtrix/aesengine v0.0.0-20220907055548-598d44c87ea8
-	github.com/quadtrix/audit v0.0.0-20220915120706-0d274eee61e2
-	github.com/quadtrix/basicqueue v0.0.0-20221010155045-2f326ad09ed2
-	github.com/quadtrix/servicelogger v0.0.0-20221003131534-7ba9cadd9093
+	github.com/quadtrix/aesengine v0.0.0-20230802091001-7827ba49b67d
+	github.com/quadtrix/audit v0.9.0-RC1
+	github.com/quadtrix/basicqueue v0.9.1-RC1
+	github.com/quadtrix/servicelogger v1.0.1-rc2
 )
 
-require golang.org/x/sys v0.0.0-20220908164124-27713097b956 // indirect
+require (
+	github.com/quadtrix/discoverer v0.9.1-beta2.0.20230810090816-f3f44586144f // indirect
+	golang.org/x/sys v0.0.0-20220908164124-27713097b956 // indirect
+)

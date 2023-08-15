@@ -1,4 +1,4 @@
-//Package configmanager, reads JSON configuration with an arbitrary structure
+// Package configmanager, reads JSON configuration with an arbitrary structure
 package configmanager
 
 import (
@@ -657,4 +657,8 @@ func (cfg Configuration) Write(filename string) (err error) {
 
 func (cfg *Configuration) SetAuditing(au *audit.Audit) {
 	cfg.auditing = au
+}
+
+func (cfg *Configuration) GetRealFilename() string {
+	return cfg.realfilename
 }
