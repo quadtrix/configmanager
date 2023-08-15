@@ -248,7 +248,7 @@ func (cfg *Configuration) ReadConfiguration() (err error) {
 	if err != nil {
 		return err
 	}
-	cfg.fileContent, err = ioutil.ReadFile(cfg.realfilename)
+	cfg.fileContent, err = os.ReadFile(cfg.realfilename)
 	if err != nil {
 		return fmt.Errorf("unable to read configuration file %s, %s", cfg.realfilename, err.Error())
 	}
