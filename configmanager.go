@@ -128,7 +128,7 @@ func (cfg *Configuration) startMonitoring() {
 				if !ok {
 					return
 				}
-				if time.Now().Sub(cfg.lastMonitorEvent) > time.Second {
+				if time.Since(cfg.lastMonitorEvent) > time.Second {
 					cfg.slog.LogTrace("startMonitoring", "configmanager", fmt.Sprintf("Received fsnotify event: %v", event))
 					cfg.queue.AddJsonMessage(cfg.queue_identifier, "configmanager", "main", "EVENT", fmt.Sprintf("%s/%s", event.Name, event.Op))
 					cfg.lastMonitorEvent = time.Now()
@@ -189,14 +189,14 @@ func (cfg *Configuration) findConfigFile() (err error) {
 			}
 		}
 	}
-	return errors.New(fmt.Sprintf("configuration file not found, searched for paths %s", searches))
+	return fmt.Errorf("configuration file not found, searched for paths %s", searches)
 }
 
 func appendMaps(orgMap map[string]interface{}, subMap map[string]interface{}) (newMap map[string]interface{}, err error) {
 
 	for key, value := range subMap {
 		if orgMap[key] != nil {
-			return orgMap, errors.New(fmt.Sprintf("key %s is not unique", key))
+			return orgMap, fmt.Errorf("key %s is not unique", key)
 		}
 		orgMap[key] = value
 	}
@@ -242,7 +242,7 @@ func (cfg *Configuration) SaveEncryptionKey(key string, encryptionKey []byte, en
 // ReadConfiguration searches for the configuration file in the defined search paths, reads and unmarshals the file
 func (cfg *Configuration) ReadConfiguration() (err error) {
 	if !cfg.ready {
-		return errors.New(fmt.Sprintf("not ready. configmanager setup is incomplete: filename: %s, filetype: %d, search paths: %v", cfg.filename, cfg.filetype, cfg.searchpaths))
+		return fmt.Errorf("not ready. configmanager setup is incomplete: filename: %s, filetype: %d, search paths: %v", cfg.filename, cfg.filetype, cfg.searchpaths)
 	}
 	err = cfg.findConfigFile()
 	if err != nil {
@@ -250,7 +250,7 @@ func (cfg *Configuration) ReadConfiguration() (err error) {
 	}
 	cfg.fileContent, err = ioutil.ReadFile(cfg.realfilename)
 	if err != nil {
-		return errors.New(fmt.Sprintf("unable to read configuration file %s, %s", cfg.realfilename, err.Error()))
+		return fmt.Errorf("unable to read configuration file %s, %s", cfg.realfilename, err.Error())
 	}
 	cfg.slog.LogTrace("ReadConfiguration", "configmanager", fmt.Sprintf("Loaded file contents from %s", cfg.realfilename))
 	cfg.fileread = true
@@ -262,7 +262,7 @@ func (cfg *Configuration) ReadConfiguration() (err error) {
 		err = json.Unmarshal(cfg.fileContent, &f)
 	}
 	if err != nil {
-		return errors.New(fmt.Sprintf("unable to unmarshal configuration file %s, %s", cfg.realfilename, err.Error()))
+		return fmt.Errorf("unable to unmarshal configuration file %s, %s", cfg.realfilename, err.Error())
 	}
 	cfg.slog.LogTrace("ReadConfiguration", "configmanager", fmt.Sprintf("Unmarshaled file contents from %s", cfg.realfilename))
 	cfg.jsonConfigMap = f.(map[string]interface{})
@@ -287,7 +287,7 @@ func (cfg *Configuration) ReadConfiguration() (err error) {
 			return err
 		}
 	} else {
-		cfg.aesengine, err = aesengine.New()
+		cfg.aesengine, _ = aesengine.New()
 		err = cfg.SaveEncryptionKey("encryption", cfg.aesengine.Key, cfg.aesengine.Nonce)
 		if err != nil {
 			cfg.slog.LogError("ReadConfiguration", "configmanager", fmt.Sprintf("Unable to save encryption key. Encryption will not be reproducable. Cause: %s", err.Error()))
@@ -308,13 +308,13 @@ func (cfg *Configuration) reReadConfiguration() (err error) {
 	cfg.slog.LogTrace("reReadConfiguration", "configmanager", fmt.Sprintf("Re-reading configuration from %s after fsnotify event", cfg.realfilename))
 	cfg.fileContent, err = ioutil.ReadFile(cfg.realfilename)
 	if err != nil {
-		return errors.New(fmt.Sprintf("unable to read configuration file %s, %s", cfg.realfilename, err.Error()))
+		return fmt.Errorf("unable to read configuration file %s, %s", cfg.realfilename, err.Error())
 	}
 	cfg.fileread = true
 	var f interface{}
 	err = json.Unmarshal(cfg.fileContent, &f)
 	if err != nil {
-		return errors.New(fmt.Sprintf("unable to unmarshal configuration file %s, %s", cfg.realfilename, err.Error()))
+		return fmt.Errorf("unable to unmarshal configuration file %s, %s", cfg.realfilename, err.Error())
 	}
 	cfg.slog.LogTrace("reReadConfiguration", "configmanager", fmt.Sprintf("Unmarshaled new file contents from %s", cfg.realfilename))
 
@@ -449,12 +449,12 @@ func (cfg Configuration) GetArray(key string) (arr map[string]string, err error)
 	result := cfg.Get(key)
 	arrt, ok := result.(map[string]interface{})
 	if !ok {
-		return map[string]string{}, errors.New(fmt.Sprintf("value of %s is not an array", key))
+		return map[string]string{}, fmt.Errorf("value of %s is not an array", key)
 	}
 	for key2, value := range arrt {
 		val, ok := value.(string)
 		if !ok {
-			return map[string]string{}, errors.New(fmt.Sprintf("value of %s.%s is not a string", key, key2))
+			return map[string]string{}, fmt.Errorf("value of %s.%s is not a string", key, key2)
 		}
 		arr[key2] = val
 	}
@@ -490,10 +490,7 @@ func (cfg Configuration) IsEncrypted(key string) int8 {
 }
 
 func (cfg Configuration) keyExists(key string) bool {
-	if cfg.findStringKey(key, cfg.jsonConfigMap) == nil {
-		return false
-	}
-	return true
+	return cfg.findStringKey(key, cfg.jsonConfigMap) != nil
 }
 
 func (cfg *Configuration) setKey(key string, value any, stringmap map[string]interface{}) (newmap map[string]interface{}, err error) {
@@ -517,7 +514,7 @@ func (cfg *Configuration) setJson(key string, value any) (err error) {
 		cfg.slog.LogTrace("setJson", "configmanager", fmt.Sprintf("Directly setting simple key %s to value %s", key, value))
 		newmap, err := cfg.setKey(key, value, cfg.jsonConfigMap)
 		if err != nil {
-			return errors.New(fmt.Sprintf("saving failed: %s", err.Error()))
+			return fmt.Errorf("saving failed: %s", err.Error())
 		}
 		cfg.jsonConfigMap = newmap
 		return nil
@@ -544,7 +541,7 @@ func (cfg *Configuration) setJson(key string, value any) (err error) {
 					cfg.slog.LogTrace("setJson", "configmanager", fmt.Sprintf("Value found for partial key %s, replacing value with %s", keyparts[i], value))
 					returnedMap, err = cfg.setKey(keyparts[i], value, stringMap)
 					if err != nil {
-						return errors.New(fmt.Sprintf("saving failed: %s", err.Error()))
+						return fmt.Errorf("saving failed: %s", err.Error())
 					} else {
 						cfg.slog.LogTrace("setJson", "configmanager", fmt.Sprintf("Returned map after replacement: %v", returnedMap))
 					}
@@ -574,7 +571,7 @@ func (cfg *Configuration) setJson(key string, value any) (err error) {
 		}
 		newmap, err := cfg.setKey(key, value, cfg.jsonConfigMap)
 		if err != nil {
-			return errors.New(fmt.Sprintf("saving failed: %s", err.Error()))
+			return fmt.Errorf("saving failed: %s", err.Error())
 		}
 		cfg.jsonConfigMap = newmap
 		return nil
@@ -597,14 +594,14 @@ func (cfg *Configuration) SetBool(key string, value bool) (err error) {
 func (cfg *Configuration) Encrypt(key string) (err error) {
 	switch cfg.IsEncrypted(key) {
 	case -1:
-		return errors.New(fmt.Sprintf("%s does not exist", key))
+		return fmt.Errorf("%s does not exist", key)
 	case 0:
-		return errors.New(fmt.Sprintf("%s is already encrypted", key))
+		return fmt.Errorf("%s is already encrypted", key)
 	}
 	cfg.slog.LogTrace("Encrypt", "configmanager", fmt.Sprintf("Request to encrypt key %s received", key))
 	value := cfg.GetString(key)
 	if value == "" {
-		return errors.New(fmt.Sprintf("%s is empty or does not exist", key))
+		return fmt.Errorf("%s is empty or does not exist", key)
 	}
 	encBytes := cfg.aesengine.Encrypt([]byte(value))
 	encryptedValue := fmt.Sprintf("ENC:%s", base64.StdEncoding.EncodeToString(encBytes))

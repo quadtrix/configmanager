@@ -1,5 +1,7 @@
 github.com/fsnotify/fsnotify v1.6.0 h1:n+5WquG0fcWoWp6xPWfHdbskMCQaFnG6PfBrh1Ky4HY=
 github.com/fsnotify/fsnotify v1.6.0/go.mod h1:sl3t1tCWJFWoRz9R8WJCbQihKKwmorjAbSClcnxKAGw=
+github.com/fsnotify/fsnotify v1.6.1-0.20230713180834-9342b6df5779 h1:QfgYVn8mwrJRJYkoKxYKon2n/XT90QULsLMvvchhth0=
+github.com/fsnotify/fsnotify v1.6.1-0.20230713180834-9342b6df5779/go.mod h1:40Bi/Hjc2AVfZrqy+aj+yEI+/bRxZnMJyTJwOpGvigM=
 github.com/google/uuid v1.3.0 h1:t6JiXgmwXMjEs8VusXIJk2BXHsn+wx8BZdTaoZ5fu7I=
 github.com/google/uuid v1.3.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
 github.com/quadtrix/aesengine v0.0.0-20230802091001-7827ba49b67d h1:xNo0macBVLMWCAAPRblR4Ai3Xz8iAoNf522Y32pkXCE=
@@ -14,3 +16,7 @@ github.com/quadtrix/servicelogger v1.0.1-rc2 h1:aLULdGhkjshe7CNs/3ZFiqGEYHUSRx9v
 github.com/quadtrix/servicelogger v1.0.1-rc2/go.mod h1:Flopvk6JG16uUTEUMkHxNOaM9Yi0xyqAL/bl4Yf9Odc=
 golang.org/x/sys v0.0.0-20220908164124-27713097b956 h1:XeJjHH1KiLpKGb6lvMiksZ9l0fVUh+AmGcm0nOMEBOY=
 golang.org/x/sys v0.0.0-20220908164124-27713097b956/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
+golang.org/x/sys v0.4.0 h1:Zr2JFtRQNX3BCZ8YtxRE9hNJYC8J6I1MVbMg6owUp18=
+golang.org/x/sys v0.4.0/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
+golang.org/x/sys v0.11.0 h1:eG7RXZHdqOJ1i+0lgLgCpSXAp6M3LYlAo6osgSi0xOM=
+golang.org/x/sys v0.11.0/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
