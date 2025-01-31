@@ -2,12 +2,10 @@
 package configmanager
 
 import (
-	"bytes"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strconv"
 	"strings"
@@ -41,7 +39,7 @@ type Configuration struct {
 	fileWatcher      *fsnotify.Watcher
 	lastMonitorEvent time.Time
 	realfilename     string
-	writable         bool
+	//writable         bool
 	fileContent      []byte
 	jsonConfigMap    map[string]interface{}
 	queue            *basicqueue.BasicQueue
@@ -306,7 +304,7 @@ func (cfg *Configuration) reReadConfiguration() (err error) {
 		cfg.auditing.AuditLog(time.Now().Format("2006-01-02 15:04:05"), "configmanager", "config re-read", fmt.Sprintf("The configuration file %s has changed outside of Delta and is re-read by the application", cfg.realfilename), audit.AU_SYSTEM)
 	}
 	cfg.slog.LogTrace("reReadConfiguration", "configmanager", fmt.Sprintf("Re-reading configuration from %s after fsnotify event", cfg.realfilename))
-	cfg.fileContent, err = ioutil.ReadFile(cfg.realfilename)
+	cfg.fileContent, err = os.ReadFile(cfg.realfilename)
 	if err != nil {
 		return fmt.Errorf("unable to read configuration file %s, %s", cfg.realfilename, err.Error())
 	}
@@ -383,12 +381,12 @@ func (cfg Configuration) getJson(key string) interface{} {
 	return nil
 }
 
-func transcode(in map[string]string) (out map[string]interface{}) {
-	buf := new(bytes.Buffer)
-	json.NewEncoder(buf).Encode(in)
-	json.NewDecoder(buf).Decode(&out)
-	return out
-}
+//func transcode(in map[string]string) (out map[string]interface{}) {
+//	buf := new(bytes.Buffer)
+//	json.NewEncoder(buf).Encode(in)
+//	json.NewDecoder(buf).Decode(&out)
+//	return out
+//}
 
 // Get returns the value of "key" as an interface{}
 func (cfg Configuration) Get(key string) interface{} {

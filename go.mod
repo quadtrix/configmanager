@@ -13,5 +13,5 @@ require (
 
 require (
 	github.com/quadtrix/discoverer v0.9.1-beta2.0.20230810090816-f3f44586144f // indirect
-	golang.org/x/sys v0.11.0 // indirect
+	golang.org/x/sys v0.11.1-0.20230816015807-70233675aed4 // indirect
 )
