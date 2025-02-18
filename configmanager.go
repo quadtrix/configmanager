@@ -473,6 +473,7 @@ func (cfg Configuration) GetArray(key string) (arr map[string]string, err error)
 func (cfg Configuration) GetStringArray(key string) (strarr []string, err error) {
 	strarr = []string{}
 	result := cfg.Get(key)
+	cfg.slog.LogTrace("GetStringArray", "configmanager", fmt.Sprintf("Loaded StringArray %s: %s", key, result))
 	strarr, ok := result.([]string)
 	if !ok {
 		return []string{}, fmt.Errorf("value of %s is not a string array", key)
