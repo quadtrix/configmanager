@@ -1,4 +1,4 @@
-// Package configmanager, reads JSON configuration with an arbitrary structure
+// Package configmanager - reads JSON configuration with an arbitrary structure
 package configmanager
 
 import (
@@ -58,9 +58,6 @@ func New(slog *servicelogger.Logger, queue *basicqueue.BasicQueue) (cfg Configur
 	cfg.reloadOnChange = false
 	cfg.filetype = -1
 	cfg.queue = queue
-	if err != nil {
-		return cfg, err
-	}
 	err = cfg.queue.RegisterProducer(cfg.queue_identifier)
 	if err != nil {
 		return cfg, err
@@ -441,6 +438,19 @@ func (cfg Configuration) GetInt(key string) (int, error) {
 	return strconv.Atoi(fmt.Sprintf("%v", intf))
 }
 
+// GetFloat32 returns the value of "key" as a float32
+func (cfg Configuration) GetFloat32(key string) (float32, error) {
+	intf := cfg.Get(key)
+	fl64, err := strconv.ParseFloat(fmt.Sprintf("%v", intf), 32)
+	return float32(fl64), err
+}
+
+// GetFloat64 returns the value of "key" as a float64
+func (cfg Configuration) GetFloat64(key string) (float64, error) {
+	intf := cfg.Get(key)
+	return strconv.ParseFloat(fmt.Sprintf("%v", intf), 64)
+}
+
 // GetArray returns the value of "key" as an array
 func (cfg Configuration) GetArray(key string) (arr map[string]string, err error) {
 	arr = map[string]string{}
@@ -457,6 +467,17 @@ func (cfg Configuration) GetArray(key string) (arr map[string]string, err error)
 		arr[key2] = val
 	}
 	return arr, nil
+}
+
+// GetStringArray returns an array of strings under "key"
+func (cfg Configuration) GetStringArray(key string) (strarr []string, err error) {
+	strarr = []string{}
+	result := cfg.Get(key)
+	strarr, ok := result.([]string)
+	if !ok {
+		return []string{}, fmt.Errorf("value of %s is not a string array", key)
+	}
+	return strarr, nil
 }
 
 // GetArrayValues returns the values of the array below "key" as an array of strings
