@@ -19,8 +19,10 @@ import (
 	"github.com/quadtrix/servicelogger"
 )
 
+// ConfigFileType type for configuration file type
 type ConfigFileType int
 
+// Constants
 const (
 	CFT_YAML ConfigFileType = 1 // Not supported
 	CFT_JSON ConfigFileType = 2
@@ -40,25 +42,25 @@ type Configuration struct {
 	lastMonitorEvent time.Time
 	realfilename     string
 	//writable         bool
-	fileContent      []byte
-	jsonConfigMap    map[string]interface{}
-	queue            *basicqueue.BasicQueue
-	slog             *servicelogger.Logger
-	queue_identifier string
-	aesengine        aesengine.AESEngine
-	auditing         *audit.Audit
+	fileContent     []byte
+	jsonConfigMap   map[string]interface{}
+	queue           *basicqueue.BasicQueue
+	slog            *servicelogger.Logger
+	queueIdentifier string
+	aesengine       aesengine.AESEngine
+	auditing        *audit.Audit
 }
 
 // New creates a new Configuration object
 func New(slog *servicelogger.Logger, queue *basicqueue.BasicQueue) (cfg Configuration, err error) {
-	cfg.queue_identifier = fmt.Sprintf("configmanager_%s", uuid.New().String())
+	cfg.queueIdentifier = fmt.Sprintf("configmanager_%s", uuid.New().String())
 	cfg.ready = false
 	cfg.fileread = false
 	cfg.unmarshaled = false
 	cfg.reloadOnChange = false
 	cfg.filetype = -1
 	cfg.queue = queue
-	err = cfg.queue.RegisterProducer(cfg.queue_identifier)
+	err = cfg.queue.RegisterProducer(cfg.queueIdentifier)
 	if err != nil {
 		return cfg, err
 	}
@@ -125,7 +127,7 @@ func (cfg *Configuration) startMonitoring() {
 				}
 				if time.Since(cfg.lastMonitorEvent) > time.Second {
 					cfg.slog.LogTrace("startMonitoring", "configmanager", fmt.Sprintf("Received fsnotify event: %v", event))
-					cfg.queue.AddJsonMessage(cfg.queue_identifier, "configmanager", "main", "EVENT", fmt.Sprintf("%s/%s", event.Name, event.Op))
+					cfg.queue.AddJsonMessage(cfg.queueIdentifier, "configmanager", "main", "EVENT", fmt.Sprintf("%s/%s", event.Name, event.Op))
 					cfg.lastMonitorEvent = time.Now()
 					time.Sleep(time.Second) // This sleep is necessary to make sure the file is fully readable
 					err := cfg.reReadConfiguration()
@@ -137,7 +139,7 @@ func (cfg *Configuration) startMonitoring() {
 				if !ok {
 					return
 				}
-				cfg.queue.AddJsonMessage(cfg.queue_identifier, "configmanager", "main", "ERROR", err.Error())
+				cfg.queue.AddJsonMessage(cfg.queueIdentifier, "configmanager", "main", "ERROR", err.Error())
 			}
 		}
 	}()
@@ -179,9 +181,8 @@ func (cfg *Configuration) findConfigFile() (err error) {
 				cfg.slog.LogTrace("findConfigFile", "configmanager", fmt.Sprintf("Found configuration file at %s/%s.%s", spath, cfg.filename, ext))
 				cfg.realfilename = fmt.Sprintf("%s/%s.%s", spath, cfg.filename, ext)
 				return nil
-			} else {
-				searches = fmt.Sprintf("%s, %s/%s.%s", searches, spath, cfg.filename, ext)
 			}
+			searches = fmt.Sprintf("%s, %s/%s.%s", searches, spath, cfg.filename, ext)
 		}
 	}
 	return fmt.Errorf("configuration file not found, searched for paths %s", searches)
@@ -202,21 +203,22 @@ func (cfg *Configuration) calcChecksum(key string, nonce string) int {
 	return 2*(len(key)+len(nonce)) + 43
 }
 
+// SaveEncryptionKey - Saves the encryption key and nonce to the configuration file
 func (cfg *Configuration) SaveEncryptionKey(key string, encryptionKey []byte, encryptionNonce []byte) (err error) {
 	keyKey := "key"
 	nonceKey := "nonce"
 	b64EncodedKey := base64.StdEncoding.EncodeToString(encryptionKey)
 	b64EncodedNonce := base64.StdEncoding.EncodeToString(encryptionNonce)
 	if cfg.keyExists(key) {
-		err = cfg.setJson(fmt.Sprintf("%s.%s", key, keyKey), b64EncodedKey)
+		err = cfg.setJSON(fmt.Sprintf("%s.%s", key, keyKey), b64EncodedKey)
 		if err != nil {
 			return err
 		}
-		err = cfg.setJson(fmt.Sprintf("%s.%s", key, nonceKey), b64EncodedNonce)
+		err = cfg.setJSON(fmt.Sprintf("%s.%s", key, nonceKey), b64EncodedNonce)
 		if err != nil {
 			return err
 		}
-		err = cfg.setJson(fmt.Sprintf("%s.%s", key, "checksum"), cfg.calcChecksum(b64EncodedKey, b64EncodedNonce))
+		err = cfg.setJSON(fmt.Sprintf("%s.%s", key, "checksum"), cfg.calcChecksum(b64EncodedKey, b64EncodedNonce))
 		if err != nil {
 			return err
 		}
@@ -335,7 +337,7 @@ func (cfg Configuration) findStringKey(key string, cfgmap map[string]interface{}
 	return nil
 }
 
-func (cfg Configuration) getJson(key string) interface{} {
+func (cfg Configuration) getJSON(key string) interface{} {
 	if cfg.unmarshaled {
 		// Valid mapstr strings:
 		// "keyword": searches for the first occurrence of "keyword" in the map and returns the value
@@ -387,7 +389,7 @@ func (cfg Configuration) getJson(key string) interface{} {
 
 // Get returns the value of "key" as an interface{}
 func (cfg Configuration) Get(key string) interface{} {
-	return cfg.getJson(key)
+	return cfg.getJSON(key)
 }
 
 // GetString returns the value of "key" as a string. If the key value is encrypted it is decrypted
@@ -519,7 +521,7 @@ func (cfg *Configuration) setKey(key string, value any, stringmap map[string]int
 	return newmap, nil
 }
 
-func (cfg *Configuration) setJson(key string, value any) (err error) {
+func (cfg *Configuration) setJSON(key string, value any) (err error) {
 	keytype := "simple"
 	if strings.Contains(key, ".") {
 		if key[0] == '@' {
@@ -562,9 +564,9 @@ func (cfg *Configuration) setJson(key string, value any) (err error) {
 					returnedMap, err = cfg.setKey(keyparts[i], value, stringMap)
 					if err != nil {
 						return fmt.Errorf("saving failed: %s", err.Error())
-					} else {
-						cfg.slog.LogTrace("setJson", "configmanager", fmt.Sprintf("Returned map after replacement: %v", returnedMap))
 					}
+					cfg.slog.LogTrace("setJson", "configmanager", fmt.Sprintf("Returned map after replacement: %v", returnedMap))
+
 					// now re-assemble the returned map into the complete jsonConfigMap
 					// Our returned map is the same structure as the last element in the mapHistory.maps array, so let's pop that one:
 					mapHistory.maps = mapHistory.maps[:len(mapHistory.maps)-1]
@@ -583,10 +585,9 @@ func (cfg *Configuration) setJson(key string, value any) (err error) {
 					cfg.slog.LogTrace("setJson", "configmanager", fmt.Sprintf("Setting jsonConfigMap to %v", mapHistory.maps[0]))
 					cfg.jsonConfigMap = mapHistory.maps[0]
 					return nil
-				} else {
-					cfg.slog.LogTrace("setJson", "configmanager", "Result is a map, traversing it...")
-					stringMap = stringMap2
 				}
+				cfg.slog.LogTrace("setJson", "configmanager", "Result is a map, traversing it...")
+				stringMap = stringMap2
 			}
 		}
 		newmap, err := cfg.setKey(key, value, cfg.jsonConfigMap)
@@ -601,12 +602,12 @@ func (cfg *Configuration) setJson(key string, value any) (err error) {
 
 // SetString sets an existing configuration key to a new string value
 func (cfg *Configuration) SetString(key string, value string) (err error) {
-	return cfg.setJson(key, value)
+	return cfg.setJSON(key, value)
 }
 
 // SetBool sets an exisition configuration key to a new boolean value
 func (cfg *Configuration) SetBool(key string, value bool) (err error) {
-	return cfg.setJson(key, value)
+	return cfg.setJSON(key, value)
 }
 
 // Encrypt encrypts a key's string value (doesn't make sense for any other type) and replaces its unencrypted value
@@ -672,10 +673,12 @@ func (cfg Configuration) Write(filename string) (err error) {
 	return nil
 }
 
+// SetAuditing - Set auditing object
 func (cfg *Configuration) SetAuditing(au *audit.Audit) {
 	cfg.auditing = au
 }
 
+// GetRealFilename - Gets the real configuration filename from the object
 func (cfg *Configuration) GetRealFilename() string {
 	return cfg.realfilename
 }
